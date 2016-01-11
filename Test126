@@ -1,0 +1,99 @@
+using System;
+using System.Text.RegularExpressions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Selenium;
+using Selenium.Internal.SeleniumEmulation;
+using OpenQA.Selenium.Interactions.Internal;
+using OpenQA.Selenium.Interactions;
+using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium;
+
+namespace SeleniumTest
+{
+    [TestClass]
+    public class Test126
+    {
+        ISelenium selenium;
+        INavigation navigation;
+        FirefoxProfile fp;
+        FirefoxDriver driver;
+        const string localIPAddress = "127.0.0.1";
+        const int port = 4444;
+        const string targetExplorer = "iexplore";
+        const string tagetURL = "http://www.126.com";
+        bool usingDriver = false;
+
+        public Test126()
+        {
+            string actualTitle = string.Empty;
+            if (!usingDriver)
+            {
+                if (selenium == null)
+                {
+                    selenium = new DefaultSelenium(localIPAddress, port, targetExplorer, tagetURL);
+                }
+            }
+            else
+            {
+                fp = new FirefoxProfile();
+                fp.SetPreference("dom.disable_open_during_load", false);
+                driver = new FirefoxDriver(fp);
+            }
+        }
+
+
+        [TestMethod]
+        public void GeneralTesting126()
+        {
+            if (!usingDriver)
+            {
+                try
+                {
+                    //测试主页被打开
+                    selenium.Start();
+                    selenium.WindowMaximize();
+                    selenium.Open("/");
+                    Assert.IsTrue(Regex.IsMatch(selenium.GetTitle(), "^126[\\s\\S]*$"));                    
+                    //用测试账号登录邮箱并且验证登录成功
+                    selenium.Type("id=idInput", "justtestselenium");
+                    selenium.Type("id=pwdInput", "Justtest123");
+                    selenium.Click("id=loginBtn");
+                    selenium.WaitForPageToLoad("30000");
+                    selenium.IsTextPresent("justtestselenium@126.com");
+                    //创建信邮件                    
+                    selenium.Click("id=_mail_component_61_61");
+                    selenium.Type("XPath=//input[@class=\'nui-editableAddr-ipt\']", "justtestselenium@126.com");
+                    string mailStr = GetTestMailTitle();
+                    selenium.Type("XPath=//input[@class=\'nui-ipt-input\']", mailStr);                                                     
+                    selenium.Type("XPath=//body[@class=\'nui-scroll\']", "这只是测试内容");
+                    selenium.SelectFrame("relative=parent");                    
+                    selenium.Click("css=span.nui-btn-text");
+                }
+                catch (Exception e)
+                {
+
+                }
+                finally
+                {
+                    selenium.Close();
+                    selenium.Stop();
+                }
+            }
+            else
+            {
+               
+            }
+        }
+
+        private string GetTestMailTitle()
+        {
+            return "这是一封测试邮件" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        }
+
+
+        ~Test126()
+        {
+
+        }
+    }
+}
